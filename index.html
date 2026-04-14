@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bao cao ket qua kinh doanh</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-header: #f8f9fa;
+      --bg-header-sub: #f1f3f5;
+      --text-header: #495057;
+      --border: #e9ecef;
+      --bg-row-hover: #f8f9fa;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-orange: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --text-primary: #212529;
+      --text-secondary: #868e96;
+      --tree-line: #dee2e6;
+      --frozen-shadow: 4px 0 8px rgba(0,0,0,0.04);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--font);
+      background: #fff;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .report-header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+    }
+
+    .report-header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .report-header .unit {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .table-wrapper {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background: var(--bg);
+      min-height: 0;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: max-content;
+      min-width: 100%;
+      font-size: 13px;
+    }
+
+    thead { position: sticky; top: 0; z-index: 30; }
+
+    thead th {
+      background: var(--bg-header);
+      color: var(--text-header);
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      padding: 12px 24px;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    thead th:first-child { text-align: center; width: 80px; min-width: 80px; }
+    thead th:nth-child(2) { text-align: left; min-width: 380px; width: 380px; }
+
+    thead th.frozen-code {
+      position: sticky; left: 0; z-index: 32;
+      background: var(--bg-header);
+    }
+
+    thead th.frozen-name {
+      position: sticky; left: 80px; z-index: 32;
+      background: var(--bg-header);
+      box-shadow: var(--frozen-shadow);
+    }
+
+    thead .sub-header th {
+      background: var(--bg-header-sub);
+      font-size: 11px;
+      padding: 8px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr { transition: background 0.12s; }
+    tbody tr:hover { background: var(--bg-row-hover); }
+
+    tbody td {
+      padding: 11px 24px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+    }
+
+    tbody td:first-child {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    tbody td:nth-child(2) { text-align: left; }
+
+    tbody td.frozen-code {
+      position: sticky; left: 0; z-index: 10;
+      background: inherit;
+    }
+
+    tbody td.frozen-name {
+      position: sticky; left: 80px; z-index: 10;
+      background: inherit;
+      box-shadow: var(--frozen-shadow);
+    }
+
+    /* Row levels */
+    tr[data-level="0"] { background: var(--bg); font-weight: 600; }
+    tr[data-level="0"] td:nth-child(2) { padding-left: 16px; }
+    tr[data-level="1"] { background: var(--bg); }
+    tr[data-level="1"] td:nth-child(2) { padding-left: 36px; }
+    tr[data-level="2"] { background: var(--bg); }
+    tr[data-level="2"] td:nth-child(2) { padding-left: 56px; }
+    tr[data-level="3"] { background: var(--bg); }
+    tr[data-level="3"] td:nth-child(2) { padding-left: 76px; }
+    tr[data-level="4"] { background: var(--bg); }
+    tr[data-level="4"] td:nth-child(2) { padding-left: 96px; }
+
+    /* Frozen cell bg */
+    tr td.frozen-code, tr td.frozen-name { background: var(--bg); }
+    tr:hover td.frozen-code, tr:hover td.frozen-name { background: var(--bg-row-hover) !important; }
+
+    /* Tree line */
+    .tree-line td.frozen-name::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--tree-line);
+      pointer-events: none;
+    }
+
+    tr[data-level="1"].tree-line td.frozen-name::after { left: 24px; }
+    tr[data-level="2"].tree-line td.frozen-name::after { left: 44px; }
+    tr[data-level="3"].tree-line td.frozen-name::after { left: 64px; }
+    tr[data-level="4"].tree-line td.frozen-name::after { left: 84px; }
+
+    /* Left accent border */
+    .accent-border td.frozen-name::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+    }
+
+    .accent-blue td.frozen-name::before { background: var(--accent-blue); }
+    .accent-green td.frozen-name::before { background: var(--accent-green); }
+    .accent-orange td.frozen-name::before { background: var(--accent-orange); }
+    .accent-purple td.frozen-name::before { background: var(--accent-purple); }
+    .accent-red td.frozen-name::before { background: var(--accent-red); }
+
+    /* Chevron toggle */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px; height: 20px;
+      border: none; background: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      margin-right: 6px; padding: 0;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+
+    .toggle-btn:hover { color: var(--text-primary); }
+    .toggle-btn svg { width: 14px; height: 14px; transition: transform 0.2s; }
+    .toggle-btn.collapsed svg { transform: rotate(-90deg); }
+
+    .name-content { display: inline-flex; align-items: center; }
+
+    tr.row-hidden { display: none; }
+
+    /* Growth rate colors */
+    .growth-positive { color: var(--accent-green); }
+    .growth-negative { color: var(--accent-red); }
+    .growth-zero { color: var(--text-secondary); }
+
+    /* Row 10 - sticky bottom inside table */
+    tr.sticky-total {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: var(--bg) !important;
+      font-weight: 700;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+    }
+
+    tr.sticky-total td {
+      border-top: 2px solid var(--border);
+      border-bottom: none;
+      padding-top: 13px;
+      padding-bottom: 13px;
+    }
+
+    tr.sticky-total td.frozen-code,
+    tr.sticky-total td.frozen-name {
+      background: var(--bg) !important;
+      z-index: 22;
+    }
+
+    tr.sticky-total:hover td.frozen-code,
+    tr.sticky-total:hover td.frozen-name {
+      background: var(--bg) !important;
+    }
+
+    /* Scrollbar */
+    .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
+    .table-wrapper::-webkit-scrollbar-track { background: #f8f9fa; }
+    .table-wrapper::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 3px; }
+    .table-wrapper::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
+  </style>
+</head>
+<body>
+  <div class="report-header">
+    <h1>Bao cao ket qua kinh doanh (Bao cao loi nhuan)</h1>
+    <div class="unit">Don vi: VND</div>
+  </div>
+
+  <div class="table-wrapper" id="tableWrapper">
+    <table id="pnlTable">
+      <thead>
+        <tr>
+          <th class="frozen-code" rowspan="2">Ma so</th>
+          <th class="frozen-name" rowspan="2">Khoan muc</th>
+          <th rowspan="2">GTUT 04/2026</th>
+          <th rowspan="2">GTQT 04/2026</th>
+          <th rowspan="2">GTQT 03/2026</th>
+          <th rowspan="2">GTQT 02/2026</th>
+          <th rowspan="2">GTQT 04/2025</th>
+          <th colspan="3" style="text-align:center; border-bottom:1px solid var(--border);">Ti le tang truong</th>
+        </tr>
+        <tr class="sub-header">
+          <th>04/2026 vs 03/2026</th>
+          <th>04/2026 vs 04/2025</th>
+          <th>03/2026 vs 02/2026</th>
+        </tr>
+      </thead>
+      <tbody id="pnlBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const rawData = [
+      { code: "1", name: "Doanh thu ban hang", level: 0, children: false, values: [109271063, 109271063, 406958795, 364800340, 0], growth: [-73.15, 100, 11.56] },
+      { code: "2", name: "Doanh thu hang ban tra lai", level: 0, children: false, values: [8903947, 8903947, 19223904, 14638214, 0], growth: [-53.68, 100, 31.33] },
+      { code: "3", name: "Doanh thu thuan", level: 0, children: false, accent: "accent-blue", values: [100367116, 100367116, 387734891, 350162126, 0], growth: [-74.11, 100, 10.73] },
+      { code: "4", name: "Gia von hang ban", level: 0, children: false, values: [23905771.27, 23905771.27, 121957764.1, 110208685.71, 0], growth: [-80.4, 100, 10.66] },
+      { code: "5", name: "Loi nhuan gop", level: 0, children: false, values: [76461344.73, 76461344.73, 265777126.9, 239953440.29, 0], growth: [-71.23, 100, 10.76] },
+      { code: "6", name: "Chi phi Sales&Marketing", level: 0, children: true, accent: "accent-green", values: [25924667.35, 39205404.78, 165377532.05, 152453579.26, 0], growth: [-76.29, 100, 8.48] },
+        { code: "6.1", name: "Chi phi san", level: 1, children: true, parentId: "6", values: [11411926.09, 11740865, 50735114.99, 38175754.88, 0], growth: [-76.86, 100, 32.9] },
+          { code: "6.1.1", name: "Phi co dinh", level: 2, children: false, parentId: "6.1", values: [6886332.84, 6971558.97, 30109467.14, 22664483.07, 0], growth: [-76.85, 100, 32.85] },
+          { code: "6.1.2", name: "Phi thanh toan", level: 2, children: false, parentId: "6.1", values: [2284816.12, 2427946.46, 10273342.18, 7927654.76, 0], growth: [-76.37, 100, 29.59] },
+          { code: "6.1.3", name: "Phi dich vu", level: 2, children: true, accent: "accent-orange", parentId: "6.1", values: [1642333.34, 1664993.9, 7287170.32, 5514977.16, 0], growth: [-77.15, 100, 32.13] },
+            { code: "6.1.3.1", name: "Phi DV ho tro uu dai van chuyen", level: 3, children: false, parentId: "6.1.3", values: [4039.99, 29814.81, 0, 0, 0], growth: [100, 100, 0] },
+            { code: "6.1.3.2", name: "Phi DV goi Mega Live (Shopee)", level: 3, children: false, parentId: "6.1.3", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.3.3", name: "Phi DV goi Voucher extra (Shopee)", level: 3, children: false, parentId: "6.1.3", values: [769611.76, 419660.18, 2858027.77, 1930587.96, 0], growth: [-85.32, 100, 48.04] },
+            { code: "6.1.3.4", name: "Phi DV goi Content Xtra (Shopee)", level: 3, children: false, parentId: "6.1.3", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.3.5", name: "Phi Freeship Xtra Plus (Shopee)", level: 3, children: false, parentId: "6.1.3", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.3.6", name: "Phi PiShip (Shopee)", level: 3, children: false, parentId: "6.1.3", values: [-121198.72, -46500, -448500, -256500, 0], growth: [89.63, 100, -74.85] },
+            { code: "6.1.3.7", name: "Phi DV Voucher extra (Tiktok)", level: 3, children: false, parentId: "6.1.3", values: [838381.93, 859780.95, 4429142.55, 3584389.2, 0], growth: [-80.59, 100, 23.57] },
+            { code: "6.1.3.8", name: "Phi DV SFP (Tiktok)", level: 3, children: false, parentId: "6.1.3", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.3.9", name: "Phi DV khac (Shopee)", level: 3, children: false, parentId: "6.1.3", values: [151498.38, 402237.96, 448500, 256500, 0], growth: [-10.31, 100, 74.85] },
+          { code: "6.1.4", name: "Phi ha tang", level: 2, children: true, parentId: "6.1", values: [584349.51, 589337.86, 3076387.98, 2163160.61, 0], growth: [-80.84, 100, 42.22] },
+            { code: "6.1.4.1", name: "Phi ha tang (Shopee)", level: 3, children: false, parentId: "6.1.4", values: [161124, 161111.11, 819444.48, 458333.36, 0], growth: [-80.34, 100, 78.79] },
+            { code: "6.1.4.2", name: "Phi xu ly don hang (Tiktok)", level: 3, children: false, parentId: "6.1.4", values: [423225.51, 428226.75, 2256943.5, 1704827.25, 0], growth: [-81.03, 100, 32.39] },
+          { code: "6.1.5", name: "Chi phi noi san khac", level: 2, children: true, parentId: "6.1", values: [28234.19, 87027.81, -11252.63, 36293.17, 0], growth: [873.4, 100, -131] },
+            { code: "6.1.5.1", name: "Phi van chuyen nha ban chiu", level: 3, children: false, parentId: "6.1.5", values: [30254.21, 85527.81, -23252.63, 33293.17, 0], growth: [467.82, 100, -169.84] },
+            { code: "6.1.5.2", name: "Phi VC nha ban chiu (don huy bat thuong)", level: 3, children: false, parentId: "6.1.5", values: [-2020.02, 1500, 12000, 3000, 0], growth: [-87.5, 100, 300] },
+            { code: "6.1.5.3", name: "Phi DV Flash Sale (Tiktok)", level: 3, children: false, parentId: "6.1.5", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.5.4", name: "Khau tru thue VAT (Tiktok)", level: 3, children: false, parentId: "6.1.5", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.5.5", name: "Khau tru thue PIT (Tiktok)", level: 3, children: false, parentId: "6.1.5", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.5.6", name: "Phi CT vi tra sau TikTok", level: 3, children: false, parentId: "6.1.5", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.5.7", name: "Phi tai nguyen chien dich (Tiktok)", level: 3, children: false, parentId: "6.1.5", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.1.5.8", name: "Phi hoan phi van chuyen (Tiktok)", level: 3, children: false, parentId: "6.1.5", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.1.6", name: "Chi phi sau dieu chinh khac (Shopee)", level: 2, children: false, parentId: "6.1", values: [-14139.91, 0, 0, -130813.89, 0], growth: [0, 0, 100] },
+        { code: "6.2", name: "Chi phi van hanh", level: 1, children: true, parentId: "6", values: [0, 0, 0, 16484604.64, 0], growth: [0, 0, -100] },
+          { code: "6.2.1", name: "Chi phi thue ngoai", level: 2, children: true, parentId: "6.2", values: [0, 0, 0, 8242302.32, 0], growth: [0, 0, -100] },
+            { code: "6.2.1.1", name: "Phi van hanh gian hang doi tac", level: 3, children: false, parentId: "6.2.1", values: [0, 0, 0, 8242302.32, 0], growth: [0, 0, -100] },
+            { code: "6.2.1.2", name: "Hoa hong doi tac", level: 3, children: false, parentId: "6.2.1", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.2.1.3", name: "Phi kho bai", level: 3, children: false, parentId: "6.2.1", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.2.2", name: "Chi phi nhan cong van hanh", level: 2, children: false, parentId: "6.2", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.2.3", name: "Chi phi quan ly va dieu hanh", level: 2, children: false, parentId: "6.2", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.2.4", name: "Chi phi kho bai", level: 2, children: true, parentId: "6.2", values: [0, 0, 0, 8242302.32, 0], growth: [0, 0, -100] },
+            { code: "6.2.4.1", name: "Phi thue kho bai", level: 3, children: false, parentId: "6.2.4", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.2.4.2", name: "Phi vat tu", level: 3, children: false, parentId: "6.2.4", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.2.4.3", name: "Chi phi nhan cong kho bai", level: 3, children: false, parentId: "6.2.4", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.2.4.4", name: "Chi phi kho bai khac", level: 3, children: false, parentId: "6.2.4", values: [0, 0, 0, 8242302.32, 0], growth: [0, 0, -100] },
+          { code: "6.2.5", name: "Chi phi hang hong", level: 2, children: false, parentId: "6.2", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.2.6", name: "Chi phi van hanh khac", level: 2, children: false, parentId: "6.2", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+        { code: "6.3", name: "Chi phi Marketing", level: 1, children: true, parentId: "6", values: [1773929.66, 14725728.18, 50239360.14, 42951497.69, 0], growth: [-70.69, 100, 16.97] },
+          { code: "6.3.1", name: "Chi phi booking KOCs/KOLs", level: 2, children: false, parentId: "6.3", values: [0, 0, 0, 111112, 0], growth: [0, 0, -100] },
+          { code: "6.3.2", name: "Chi phi booking Self-channel", level: 2, children: false, parentId: "6.3", values: [0, 0, 2388889, 1611112, 0], growth: [-100, 0, 48.28] },
+          { code: "6.3.3", name: "Chi phi livestream KOCs/KOLs", level: 2, children: false, parentId: "6.3", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.3.4", name: "Chi phi livestream Self-channel", level: 2, children: false, parentId: "6.3", values: [0, 76876, 5947859, 6127445, 0], growth: [-98.71, 100, -2.93] },
+          { code: "6.3.5", name: "Chi phi Tiep thi lien ket", level: 2, children: true, accent: "accent-orange", parentId: "6.3", values: [1773929.66, 1942669, 9369623, 7002736, 0], growth: [-79.27, 100, 33.8] },
+            { code: "6.3.5.1", name: "CP hoa hong TTLK (Shopee)", level: 3, children: false, parentId: "6.3.5", values: [416115.49, 508032, 1823700, 1435753, 0], growth: [-72.14, 100, 27.02] },
+            { code: "6.3.5.2", name: "CP hoa hong affiliate (TikTok)", level: 3, children: false, parentId: "6.3.5", values: [1290986.83, 1357791, 7101332, 5428211, 0], growth: [-80.88, 100, 30.82] },
+            { code: "6.3.5.3", name: "CP hoa hong doi tac affiliate (TikTok)", level: 3, children: false, parentId: "6.3.5", values: [6074.92, 0, 100320, 0, 0], growth: [-100, 0, 100] },
+            { code: "6.3.5.4", name: "CP hoa hong QC cua hang (Tiktok)", level: 3, children: false, parentId: "6.3.5", values: [60752.42, 76846, 344271, 138772, 0], growth: [-77.68, 100, 148.08] },
+          { code: "6.3.6", name: "Chi phi Ads", level: 2, children: false, accent: "accent-purple", parentId: "6.3", values: [0, 12648083.18, 32416134.15, 28019692.69, 0], growth: [-60.98, 100, 15.69] },
+          { code: "6.3.7", name: "Chi phi Marketing Solution", level: 2, children: true, parentId: "6.3", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.3.7.1", name: "Phi DV chuong trinh AMS (Shopee)", level: 3, children: false, parentId: "6.3.7", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+            { code: "6.3.7.2", name: "Phi DV chuong trinh EAMS (TikTok)", level: 3, children: false, parentId: "6.3.7", values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+          { code: "6.3.8", name: "Chi phi xu", level: 2, children: false, parentId: "6.3", values: [0, 58100, 110500, 79400, 0], growth: [-47.42, 100, 39.17] },
+          { code: "6.3.9", name: "Chi phi sample KOL/KOC", level: 2, children: false, parentId: "6.3", values: [0, 0, 6354.99, 0, 0], growth: [-100, 0, 100] },
+          { code: "6.3.10", name: "Chi phi ship hang", level: 2, children: false, parentId: "6.3", values: [0, 55638.1, 267898.17, 328081.89, 0], growth: [-79.23, 100, -18.34] },
+        { code: "6.4", name: "Chi phi khuyen mai", level: 1, children: true, accent: "accent-purple", parentId: "6", values: [12738811.6, 12738811.6, 64403056.92, 54841722.05, 0], growth: [-80.22, 100, 17.43] },
+          { code: "6.4.1", name: "CP qua tang gan thu cong", level: 2, children: false, parentId: "6.4", values: [59813.97, 59813.97, 294037.43, 400531.79, 0], growth: [-79.66, 100, -26.59] },
+          { code: "6.4.2", name: "CP qua tang theo seller", level: 2, children: false, parentId: "6.4", values: [1425355.63, 1425355.63, 5236524.49, 4224271.26, 0], growth: [-72.78, 100, 23.96] },
+          { code: "6.4.3", name: "Giam gia ban hang", level: 2, children: false, parentId: "6.4", values: [11253642, 11253642, 58872495, 50216919, 0], growth: [-80.88, 100, 17.24] },
+      { code: "7", name: "Chi phi van hanh noi bo", level: 0, children: false, values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+      { code: "8", name: "Loi nhuan thuan", level: 0, children: false, values: [50536677.38, 37255939.95, 100399594.85, 87499861.03, 0], growth: [-62.89, 100, 14.74] },
+      { code: "9", name: "Chi phi khac", level: 0, children: false, values: [0, 0, 0, 0, 0], growth: [0, 0, 0] },
+    ];
+
+    // Row 10 is part of the table but sticky at bottom
+    const totalRow = { code: "10", name: "Tong loi nhuan ke toan truoc thue", level: 0, accent: "accent-green", values: [50536677.38, 37255939.95, 100399594.85, 87499861.03, 0], growth: [-62.89, 100, 14.74] };
+
+    function formatNumber(val) {
+      if (val === 0) return '-';
+      const negative = val < 0;
+      const abs = Math.abs(val);
+      const formatted = Number.isInteger(abs)
+        ? abs.toLocaleString('en-US')
+        : abs.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      return negative ? `(${formatted})` : formatted;
+    }
+
+    function formatGrowth(val) {
+      if (val === 0) return '<span class="growth-zero">-</span>';
+      const cls = val > 0 ? 'growth-positive' : 'growth-negative';
+      const arrow = val > 0 ? '&#9650;' : '&#9660;';
+      return `<span class="${cls}">${arrow} ${Math.abs(val).toFixed(2)}%</span>`;
+    }
+
+    function chevronSvg() {
+      return `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3,4 6,7 9,4"/></svg>`;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('pnlBody');
+      let html = '';
+
+      rawData.forEach((row) => {
+        const accentClass = row.accent ? `accent-border ${row.accent}` : '';
+        const treeClass = row.level > 0 ? 'tree-line' : '';
+
+        html += `<tr data-code="${row.code}" data-level="${row.level}" data-parent="${row.parentId || ''}" class="${accentClass} ${treeClass}">`;
+        html += `<td class="frozen-code">${row.code}</td>`;
+        html += `<td class="frozen-name"><span class="name-content">`;
+        if (row.children) {
+          html += `<button class="toggle-btn" onclick="toggleRow('${row.code}')" data-toggle="${row.code}">${chevronSvg()}</button>`;
+        }
+        html += `${row.name}</span></td>`;
+        row.values.forEach(v => { html += `<td>${formatNumber(v)}</td>`; });
+        row.growth.forEach(g => { html += `<td>${formatGrowth(g)}</td>`; });
+        html += '</tr>';
+      });
+
+      // Row 10 - inside table, sticky bottom
+      const r = totalRow;
+      html += `<tr data-code="${r.code}" data-level="0" class="sticky-total accent-border ${r.accent}">`;
+      html += `<td class="frozen-code">${r.code}</td>`;
+      html += `<td class="frozen-name"><span class="name-content">${r.name}</span></td>`;
+      r.values.forEach(v => { html += `<td>${formatNumber(v)}</td>`; });
+      r.growth.forEach(g => { html += `<td>${formatGrowth(g)}</td>`; });
+      html += '</tr>';
+
+      tbody.innerHTML = html;
+    }
+
+    function toggleRow(code) {
+      const btn = document.querySelector(`[data-toggle="${code}"]`);
+      const isCollapsing = !btn.classList.contains('collapsed');
+      btn.classList.toggle('collapsed');
+
+      const rows = document.querySelectorAll('#pnlBody tr');
+
+      if (isCollapsing) {
+        const codesToHide = new Set();
+        function collectChildren(parentCode) {
+          rows.forEach(r => {
+            if (r.dataset.parent === parentCode) {
+              codesToHide.add(r.dataset.code);
+              collectChildren(r.dataset.code);
+            }
+          });
+        }
+        collectChildren(code);
+        rows.forEach(r => {
+          if (codesToHide.has(r.dataset.code)) r.classList.add('row-hidden');
+        });
+        codesToHide.forEach(c => {
+          const cb = document.querySelector(`[data-toggle="${c}"]`);
+          if (cb) cb.classList.add('collapsed');
+        });
+      } else {
+        rows.forEach(r => {
+          if (r.dataset.parent === code) {
+            r.classList.remove('row-hidden');
+            const cb = document.querySelector(`[data-toggle="${r.dataset.code}"]`);
+            if (cb) cb.classList.add('collapsed');
+          }
+        });
+      }
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
