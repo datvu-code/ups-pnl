@@ -204,6 +204,7 @@
     .toggle-btn.collapsed svg { transform: rotate(-90deg); }
 
     .name-content { display: inline-flex; align-items: center; }
+    .toggle-placeholder { display: inline-flex; width: 20px; height: 20px; margin-right: 6px; flex-shrink: 0; }
 
     tr.row-hidden { display: none; }
 
@@ -387,6 +388,8 @@
         html += `<td class="frozen-name"><span class="name-content">`;
         if (row.children) {
           html += `<button class="toggle-btn" onclick="toggleRow('${row.code}')" data-toggle="${row.code}">${chevronSvg()}</button>`;
+        } else {
+          html += `<span class="toggle-placeholder"></span>`;
         }
         html += `${row.name}</span></td>`;
         row.values.forEach(v => { html += `<td>${formatNumber(v)}</td>`; });
@@ -398,7 +401,7 @@
       const r = totalRow;
       html += `<tr data-code="${r.code}" data-level="0" class="sticky-total accent-border ${r.accent}">`;
       html += `<td class="frozen-code">${r.code}</td>`;
-      html += `<td class="frozen-name"><span class="name-content">${r.name}</span></td>`;
+      html += `<td class="frozen-name"><span class="name-content"><span class="toggle-placeholder"></span>${r.name}</span></td>`;
       r.values.forEach(v => { html += `<td>${formatNumber(v)}</td>`; });
       r.growth.forEach(g => { html += `<td>${formatGrowth(g)}</td>`; });
       html += '</tr>';
